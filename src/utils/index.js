@@ -9,7 +9,7 @@ const program = new Command();
 
 // Brand header
 function showBrand() {
-  console.log("🧠 Cortex v1.0.0 - AI-Friendly Project Context Extractor\n");
+  console.log("\n📦 Cortex v1.0.0 - Project Context CLI\n");
 }
 
 program
@@ -19,7 +19,7 @@ program
 
 program
   .command("context")
-  .description("Extract full project context (all files)")
+  .description("📁 Extract full project (all files & code)")
   .option("-v, --verbose", "show detailed scanning info")
   .option("-s, --stats", "show project statistics")
   .action((options) => {
@@ -29,7 +29,7 @@ program
 
 program
   .command("file <filepath>")
-  .description("Extract a specific file")
+  .description("📄 Extract a single file's code")
   .option("-l, --lines", "include line numbers")
   .action((filepath, options) => {
     showBrand();
@@ -38,7 +38,7 @@ program
 
 program
   .command("deps")
-  .description("Extract package.json dependencies")
+  .description("📦 Extract only dependencies from package.json")
   .option("--dev-only", "include only devDependencies")
   .option("--prod-only", "include only dependencies (production)")
   .action((options) => {
@@ -48,7 +48,7 @@ program
 
 program
   .command("tree")
-  .description("Show project file structure")
+  .description("🌲 Show project folder structure")
   .option("-d, --depth <n>", "maximum depth to show", "3")
   .action((options) => {
     showBrand();
@@ -57,52 +57,51 @@ program
 
 program
   .command("stats")
-  .description("Show project statistics")
+  .description("📊 Show project statistics (files, lines, size)")
   .action(() => {
     showBrand();
     runStats();
   });
 
-// Custom help
+// Custom help - Simple and clean like your example
 program.configureHelp({
   formatHelp: () => {
-    showBrand();
-    return `USAGE:
+    return `🧠 Cortex v1.0.0 - Project Context Made Simple
+USAGE:
   cortex <command> [options]
 
 COMMANDS:
-  context                 Extract full project context (all files)
-  file <filepath>         Extract a specific file  
-  deps                    Extract package.json dependencies
-  tree                    Show project file structure
-  stats                   Show project statistics
+  context                 Extract full project (all files & code)
+  file <filepath>         Extract a single file's code
+  deps                    Extract only dependencies from package.json
+  tree                    Show project folder structure
+  stats                   Show project statistics (files, lines, size)
 
 OPTIONS:
-  --verbose, -v           Show detailed output
   --version               Show version number
-  --help, -h              Show this help
+  --help, -h              Show help for a command
 
 EXAMPLES:
-  cortex context          # Get entire project for AI
-  cortex file src/app.js  # Get single file
-  cortex deps             # Get only dependencies
+  cortex context          # Copy entire project code to clipboard
+  cortex file src/app.js  # Copy only one file's code
+  cortex deps             # Copy dependencies
+  cortex tree             # Show folder structure
+  cortex stats            # Show project stats
 
-💡 Pro tip: All output is automatically copied to clipboard!
-`;
+✨ All output is automatically copied to clipboard!`;
   }
 });
 
-// Handle no command
+// Handle no command - Simple quick start
 program.action(() => {
-  showBrand();
-  console.log(`💡 Quick start:
-  
-  cortex context          # Extract full project
-  cortex file <path>      # Extract single file
+  console.log(`--Cortex Quick Start 🛺
+  cortex context          # Extract all code
+  cortex file <path>      # Extract one file  
   cortex deps             # Extract dependencies
-  cortex --help           # Show all commands
-  
-🎯 All output is copied to clipboard automatically!`);
+  cortex tree             # Show folder structure
+  cortex stats            # Show project stats
+
+✨ Output is copied to clipboard automatically.`);
 });
 
 program.parse(process.argv);
