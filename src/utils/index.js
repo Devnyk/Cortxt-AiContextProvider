@@ -9,13 +9,13 @@ const program = new Command();
 
 // Brand header
 function showBrand() {
-  console.log("\n📦 Cortex v1.0.0 - Project Context CLI\n");
+  console.log("\n📦 Cortex v1.0.0 - Fastest way to share your project with AI.\n");
 }
 
 program
   .name("cortex")
-  .description("🧠 AI-friendly CLI to share project context or file code easily")
-  .version("1.0.0");
+  .description("🧠 Cortex – Simplest way to share project context with AI.")
+  .version("1.0.0"); 
 
 program
   .command("context")
@@ -94,7 +94,8 @@ EXAMPLES:
 
 // Handle no command - Simple quick start
 program.action(() => {
-  console.log(`--Cortex Quick Start 🛺
+  console.log(`--->>>>> 👉 Cortex Quick Commands 👇 <<<<<---
+
   cortex context          # Extract all code
   cortex file <path>      # Extract one file  
   cortex deps             # Extract dependencies
