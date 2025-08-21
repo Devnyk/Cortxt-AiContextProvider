@@ -4,18 +4,19 @@ import { runFile } from "../commands/file.js";
 import { runDeps } from "../commands/deps.js";
 import { runTree } from "../commands/tree.js";
 import { runStats } from "../commands/stats.js";
+import { colors } from "../utils/colors.js";
 
 const program = new Command();
 
 // Brand header
 function showBrand() {
-  console.log("\n📦 Cortex v1.0.0 - Fastest way to share your project with AI.\n");
+  console.log(`\n${colors.brand('📦 Cortex v1.0.0')} - ${colors.info('Fastest way to share your project with AI.')}\n`);
 }
 
 program
   .name("cortex")
   .description("🧠 Cortex – Simplest way to share project context with AI.")
-  .version("1.0.0"); 
+  .version("1.0.0");
 
 program
   .command("context")
@@ -63,46 +64,48 @@ program
     runStats();
   });
 
-// Custom help - Simple and clean like your example
+// Custom help - Simple and clean with strategic highlighting
 program.configureHelp({
   formatHelp: () => {
-    return `🧠 Cortex v1.0.0 - Project Context Made Simple
-USAGE:
-  cortex <command> [options]
+    return `${colors.brand.bold('Cortex Help Commands')} 🤝
 
-COMMANDS:
-  context                 Extract full project (all files & code)
-  file <filepath>         Extract a single file's code
-  deps                    Extract only dependencies from package.json
-  tree                    Show project folder structure
-  stats                   Show project statistics (files, lines, size)
+${colors.info('USAGE:')}
+  ${colors.brand('cortex')} <command> [options]
 
-OPTIONS:
+${colors.info('COMMANDS:')}
+  ${colors.filename('context')}                 Extract full project (all files & code)
+  ${colors.filename('file <filepath>')}         Extract a single file's code
+  ${colors.filename('deps')}                    Extract only dependencies from package.json
+  ${colors.filename('tree')}                    Show project folder structure
+  ${colors.filename('stats')}                   Show project statistics (files, lines, size)
+
+${colors.info('OPTIONS:')}
   --version               Show version number
   --help, -h              Show help for a command
 
-EXAMPLES:
-  cortex context          # Copy entire project code to clipboard
-  cortex file src/app.js  # Copy only one file's code
-  cortex deps             # Copy dependencies
-  cortex tree             # Show folder structure
-  cortex stats            # Show project stats
+${colors.info('EXAMPLES:')}
+  ${colors.brand('cortex context')}          # Copy entire project code to clipboard
+  ${colors.brand('cortex file src/app.js')}  # Copy only one file's code
+  ${colors.brand('cortex deps')}             # Copy dependencies
+  ${colors.brand('cortex tree')}             # Show folder structure
+  ${colors.brand('cortex stats')}            # Show project stats
 
-✨ All output is automatically copied to clipboard!`;
+${colors.success('✨ All output is automatically copied to clipboard!')}`;
   }
 });
 
-// Handle no command - Simple quick start
+// Handle no command - Simple quick start with highlighting
 program.action(() => {
-  console.log(`--->>>>> 👉 Cortex Quick Commands 👇 <<<<<---
+  console.log(`${colors.info('--->>>>> 👉 Cortex Quick Commands 👇 <<<<<---')}
 
-  cortex context          # Extract all code
-  cortex file <path>      # Extract one file  
-  cortex deps             # Extract dependencies
-  cortex tree             # Show folder structure
-  cortex stats            # Show project stats
+  ${colors.brand.bold('cortex context')}          # Extract all code
+  ${colors.brand.bold('cortex file <path>')}      # Extract one file
+  ${colors.brand.bold('cortex deps')}             # Extract dependencies
+  ${colors.brand.bold('cortex tree')}             # Show folder structure
+  ${colors.brand.bold('cortex stats')}            # Show project stats
+  ${colors.brand.bold('cortex --help')}           # Show help
 
-✨ Output is copied to clipboard automatically.`);
+${colors.success('✨ Output is copied to clipboard automatically.')}`);
 });
 
 program.parse(process.argv);

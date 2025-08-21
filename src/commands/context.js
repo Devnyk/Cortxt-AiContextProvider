@@ -1,15 +1,22 @@
 // src/commands/context.js
+import fs from "fs";
+import path from "path";
 import { readProject } from "../utils/read.js";
 import { copyToClipboard } from "../utils/clipboard.js";
 import { formatBytes, getProjectName } from "../utils/helpers.js";
+import { colors, ui } from "../utils/colors.js";
+import chalk from "chalk";
 
 export async function runContext(options = {}) {
   try {
-    console.log("🔍 Scanning project directory...");
+    console.log("🔍 Scanning project...");
     
     const projectName = getProjectName();
+    const projectType = detectProjectType();
+    
     if (projectName) {
-      console.log(`📁 Found project: ${projectName}`);
+      const displayName = projectType ? `${projectName} (${projectType})` : projectName;
+      console.log(`Project: ${displayName}`);
     }
 
     const startTime = Date.now();
@@ -21,11 +28,11 @@ export async function runContext(options = {}) {
     
     if (fileCount === 0) {
       console.log("❌ No files found to process");
-      console.log("💡 Tip: Make sure you're in a project directory");
+      console.log("💡 Not in a project folder? Navigate to your code directory first");
       return;
     }
 
-    console.log("📄 Processing files... [▓▓▓▓▓▓▓▓▓▓] 100%");
+    console.log("Processing files...");
     
     const formatted = files
       .map(([file, code]) => `\n\n### ${file}\n\`\`\`\n${code}\n\`\`\``)
@@ -36,7 +43,7 @@ export async function runContext(options = {}) {
     console.log(`✅ Processed ${fileCount} files (${formatBytes(totalSize)}) in ${processTime}s`);
     
     if (result.skipped > 0) {
-      console.log(`⚠️  Skipped ${result.skipped} binary/large files`);
+      console.log(`Skipped ${result.skipped} binary/large files`);
     }
 
     if (options.stats) {
@@ -44,33 +51,95 @@ export async function runContext(options = {}) {
     }
 
     // Copy to clipboard
-    console.log("📋 Copying to clipboard...");
     copyToClipboard(formatted);
-    console.log("🎉 Project context ready for your AI assistant!");
+    console.log("📋 Copied to clipboard - Paste to any AI & watch magic ✨");
     
-    // Context window warning
-    if (totalSize > 100000) { // ~100KB
-      console.log("⚠️  Large context detected - consider using specific files if AI struggles");
-    } else {
-      console.log("🎯 Perfect size for AI context window!");
-    }
+    // Smart suggestions based on project
+    showSmartSuggestions(totalSize, fileCount, files);
 
     if (options.verbose) {
-      console.log(`\n📊 Quick Stats:`);
-      console.log(`   Files: ${fileCount}`);
-      console.log(`   Size: ${formatBytes(totalSize)}`);
-      console.log(`   Estimated tokens: ~${Math.round(totalSize / 4)}`);
+      console.log(`\nStats: ${fileCount} files, ${formatBytes(totalSize)}, ~${Math.round(totalSize / 4)} tokens`);
     }
 
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
-    console.log("💡 Tip: Make sure you're in a valid project directory");
+    if (error.code === 'ENOENT') {
+      console.log("💡 Not in a project folder? Navigate to your code directory first");
+    } else {
+      console.log("💡 Make sure you're in a valid project directory");
+    }
     process.exit(1);
   }
 }
 
+function detectProjectType() {
+  const cwd = process.cwd();
+  const hasFile = (name) => fs.existsSync(path.join(cwd, name));
+  
+  if (hasFile('package.json')) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
+      
+      // React/Next.js
+      if (pkg.dependencies?.react || pkg.dependencies?.next) {
+        return hasFile('next.config.js') ? '⚛️ Next.js' : '⚛️ React';
+      }
+      
+      // Vue.js
+      if (pkg.dependencies?.vue || hasFile('vue.config.js')) {
+        return '🟢 Vue.js';
+      }
+      
+      // Node.js API
+      if (pkg.dependencies?.express || pkg.dependencies?.fastify) {
+        return '🚀 Node.js API';
+      }
+      
+      return '📦 Node.js';
+    } catch {
+      return '📦 Node.js';
+    }
+  }
+  
+  if (hasFile('requirements.txt') || hasFile('setup.py')) {
+    return '🐍 Python';
+  }
+  
+  if (hasFile('Cargo.toml')) {
+    return '🦀 Rust';
+  }
+  
+  if (hasFile('go.mod')) {
+    return '🐹 Go';
+  }
+  
+  return null;
+}
+
+function showSmartSuggestions(totalSize, fileCount, files) {
+  // Large project suggestion
+  if (totalSize > 200000) {
+    const mainFiles = files.filter(([file]) => 
+      file.includes('index.') || file.includes('main.') || file.includes('app.')
+    );
+    if (mainFiles.length > 0) {
+      console.log(`💡 Project is large! Try: ${colors.brand.bold('cortex file ' + mainFiles[0][0])} for focused help`);
+    } else {
+      console.log(`💡 Project is large! Try: ${colors.brand.bold('cortex file <specific-file>')} for focused help`);
+    }
+  } 
+  // Small project
+  else if (fileCount < 3) {
+    console.log("💡 Small project detected. Perfect for AI analysis!");
+  }
+  // Medium project with package.json
+  else if (fs.existsSync(path.join(process.cwd(), "package.json"))) {
+    console.log(`💡 Need help? Try ${colors.brand.bold('cortex --help')} 🤝`);
+  }
+}
+
 function showDetailedStats(files, totalSize) {
-  console.log(`\n📊 Detailed Statistics:`);
+  console.log(`\nDetailed Statistics:`);
   console.log(`━━━━━━━━━━━━━━━━━━━━`);
   
   // File type breakdown
