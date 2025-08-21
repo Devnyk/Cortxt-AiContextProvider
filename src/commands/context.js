@@ -123,9 +123,9 @@ function showSmartSuggestions(totalSize, fileCount, files) {
       file.includes('index.') || file.includes('main.') || file.includes('app.')
     );
     if (mainFiles.length > 0) {
-      console.log(`💡 Project is large! Try: ${colors.brand.bold('cortex file ' + mainFiles[0][0])} for focused help`);
+      console.log(`💡 Project is large! Try: ${colors.brand.bold('cortxt file ' + mainFiles[0][0])} for focused help`);
     } else {
-      console.log(`💡 Project is large! Try: ${colors.brand.bold('cortex file <specific-file>')} for focused help`);
+      console.log(`💡 Project is large! Try: ${colors.brand.bold('cortxt file <specific-file>')} for focused help`);
     }
   } 
   // Small project
@@ -134,7 +134,7 @@ function showSmartSuggestions(totalSize, fileCount, files) {
   }
   // Medium project with package.json
   else if (fs.existsSync(path.join(process.cwd(), "package.json"))) {
-    console.log(`💡 Need help? Try ${colors.brand.bold('cortex --help')} 🤝`);
+    console.log(`💡 Need help? Try ${colors.brand.bold('cortxt --help')} 🤝`);
   }
 }
 

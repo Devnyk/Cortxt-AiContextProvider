@@ -74,7 +74,7 @@ export async function runFile(filePath, options = {}) {
         )}`
       );
       console.log(
-        `💡 Try: ${brandBold("cortex tree")} to see directory structure`
+        `💡 Try: ${brandBold("cortxt tree")} to see directory structure`
       );
     }
     process.exit(1);

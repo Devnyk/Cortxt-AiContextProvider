@@ -1,13 +1,13 @@
 {
-  "name": "cortex",
+  "name": "cortxt",
   "version": "1.0.0",
   "description": "AI-friendly CLI to share project context or file code easily",
   "bin": {
-    "cortex": "./bin/cortex.js"
+    "cortxt": "./bin/cortxt.js"
   },
   "type": "module",
   "scripts": {
-    "dev": "node ./bin/cortex.js"
+    "dev": "node ./bin/cortxt.js"
   },
   "dependencies": {
     "chalk": "^5.6.0",

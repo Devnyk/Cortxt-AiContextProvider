@@ -10,12 +10,12 @@ const program = new Command();
 
 // Brand header
 function showBrand() {
-  console.log(`\n${colors.brand('📦 Cortex v1.0.0')} - ${colors.info('Fastest way to provide project context to AI intelligence.')}\n`);
+  console.log(`\n${colors.brand('📦 Cortxt v1.0.0')} - ${colors.info('Fastest way to provide project context to AI intelligence.')}\n`);
 }
 
 program
-  .name("cortex")
-  .description("🧠 Cortex – Simplest way to share project context with AI.")
+  .name("cortxt")
+  .description("🧠 Cortxt – Simplest way to share project context with AI.")
   .version("1.0.0");
 
 program
@@ -67,10 +67,10 @@ program
 // Custom help - Simple and clean with strategic highlighting
 program.configureHelp({
   formatHelp: () => {
-    return `${colors.brand.bold('Cortex Help Commands')} 🤝
+    return `${colors.brand.bold('Cortxt Help Commands')} 🤝
 
 ${colors.info('USAGE:')}
-  ${colors.brand('cortex')} <command> [options]
+  ${colors.brand('cortxt')} <command> [options]
 
 ${colors.info('COMMANDS:')}
   ${colors.filename('context')}                 Extract full project (all files & code)
@@ -84,11 +84,11 @@ ${colors.info('OPTIONS:')}
   --help, -h              Show help for a command
 
 ${colors.info('EXAMPLES:')}
-  ${colors.brand('cortex context')}          # Copy entire project code to clipboard
-  ${colors.brand('cortex file src/app.js')}  # Copy only one file's code
-  ${colors.brand('cortex deps')}             # Copy dependencies
-  ${colors.brand('cortex tree')}             # Show folder structure
-  ${colors.brand('cortex stats')}            # Show project stats
+  ${colors.brand('cortxt context')}          # Copy entire project code to clipboard
+  ${colors.brand('cortxt file src/app.js')}  # Copy only one file's code
+  ${colors.brand('cortxt deps')}             # Copy dependencies
+  ${colors.brand('cortxt tree')}             # Show folder structure
+  ${colors.brand('cortxt stats')}            # Show project stats
 
 ${colors.success('✨ All output is automatically copied to clipboard!')}`;
   }
@@ -96,14 +96,14 @@ ${colors.success('✨ All output is automatically copied to clipboard!')}`;
 
 // Handle no command - Simple quick start with highlighting
 program.action(() => {
-  console.log(`${colors.info('--->>>>> 👉 Cortex Quick Commands 👇 <<<<<---')}
+  console.log(`${colors.info('--->>>>> 👉 Cortxt Quick Commands 👇 <<<<<---')}
 
-  ${colors.brand.bold('cortex context')}          # Extract all code
-  ${colors.brand.bold('cortex file <path>')}      # Extract one file
-  ${colors.brand.bold('cortex deps')}             # Extract dependencies
-  ${colors.brand.bold('cortex tree')}             # Show folder structure
-  ${colors.brand.bold('cortex stats')}            # Show project stats
-  ${colors.brand.bold('cortex --help')}           # Show help
+  ${colors.brand.bold('cortxt context')}          # Extract all code
+  ${colors.brand.bold('cortxt file <path>')}      # Extract one file
+  ${colors.brand.bold('cortxt deps')}             # Extract dependencies
+  ${colors.brand.bold('cortxt tree')}             # Show folder structure
+  ${colors.brand.bold('cortxt stats')}            # Show project stats
+  ${colors.brand.bold('cortxt --help')}           # Show help
 
 ${colors.success('✨ Output is copied to clipboard automatically.')}`);
 });
