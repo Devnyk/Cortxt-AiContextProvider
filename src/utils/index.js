@@ -10,7 +10,7 @@ const program = new Command();
 
 // Brand header
 function showBrand() {
-  console.log(`\n${colors.brand('📦 Cortex v1.0.0')} - ${colors.info('Fastest way to share your project with AI.')}\n`);
+  console.log(`\n${colors.brand('📦 Cortex v1.0.0')} - ${colors.info('Fastest way to provide project context to AI intelligence.')}\n`);
 }
 
 program
