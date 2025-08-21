@@ -1,5 +1,7 @@
 # Cortxt 🧠
 
+![Cortxt Banner](./assets/cortxt.png)
+
 **The fastest way to provide project context to AI intelligence.**
 
 AI-friendly CLI that instantly transforms your codebase into perfectly formatted context for ChatGPT, Claude, and any AI assistant.
