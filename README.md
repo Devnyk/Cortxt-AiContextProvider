@@ -146,6 +146,7 @@ function hello() {
 - `--stats` - Complete project statistics
 
 ### **Other Commands**
+- `--help` - Cortxt help box open
 - `--lines` - Include line numbers for debugging
 - `--dev-only` - Development dependencies only
 - `--prod-only` - Production dependencies only  
