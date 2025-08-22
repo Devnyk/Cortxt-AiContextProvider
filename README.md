@@ -15,8 +15,14 @@ npx cortxt context
 # Focus on a specific file  
 npx cortxt file src/index.js
 
+# Extract the folder structure
+npx cortxt tree
+
 # Extract just the dependencies
 npx cortxt deps
+
+# Give you cortxt quick commands list
+npx cortxt list
 ```
 
 ## 🚀 Installation
