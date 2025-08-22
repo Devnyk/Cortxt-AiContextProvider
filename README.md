@@ -186,16 +186,6 @@ npx cortxt context --stats
 # → AI generates comprehensive project documentation
 ```
 
-## 🏆 Why Developers Love Cortxt
-
-> **"Saves me hours every week. Copy, paste, get instant AI help!"** - React Developer
-
-> **"Finally, an AI context tool that just works. No setup, no config."** - Full-stack Engineer  
-
-> **"Game changer for code reviews and debugging sessions."** - Tech Lead
-
-> **"Smart filtering is perfect for large monorepos. Gets exactly what I need!"** - Senior Developer
-
 ## 🌟 Key Features
 
 - **🧠 AI-first design** - Built specifically for AI interactions
