@@ -1,4 +1,4 @@
-# Cortxt 🧠
+# Cortxt 🧠 - AI Context Provider
 
 ![Cortxt Banner](https://ik.imagekit.io/1ukuaaqqhl/cortxt2.png?updatedAt=1755861293199)
 
