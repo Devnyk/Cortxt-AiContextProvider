@@ -22,17 +22,26 @@ export async function runContext(options = {}) {
     const startTime = Date.now();
     const result = await readProject(process.cwd(), options);
     
-    const files = Object.entries(result.data);
-    const fileCount = files.length;
-    const totalSize = files.reduce((sum, [, content]) => sum + content.length, 0);
+    let files = Object.entries(result.data);
+    const originalFileCount = files.length;
+    const originalTotalSize = files.reduce((sum, [, content]) => sum + content.length, 0);
     
-    if (fileCount === 0) {
+    if (originalFileCount === 0) {
       console.log("❌ No files found to process");
       console.log("💡 Not in a project folder? Navigate to your code directory first");
       return;
     }
 
+    // Smart handling for large projects
+    if (originalTotalSize > 500000 && !options.force) {
+      console.log("🧠 Smart processing for large project...");
+      files = handleLargeProject(files, options);
+    }
+
     console.log("Processing files...");
+    
+    const finalFileCount = files.length;
+    const finalTotalSize = files.reduce((sum, [, content]) => sum + content.length, 0);
     
     const formatted = files
       .map(([file, code]) => `\n\n### ${file}\n\`\`\`\n${code}\n\`\`\``)
@@ -40,25 +49,33 @@ export async function runContext(options = {}) {
 
     // Show stats
     const processTime = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`✅ Processed ${fileCount} files (${formatBytes(totalSize)}) in ${processTime}s`);
+    
+    if (finalFileCount !== originalFileCount) {
+      console.log(`✅ Processed ${finalFileCount} priority files (${formatBytes(finalTotalSize)}) in ${processTime}s`);
+      console.log(`📊 Original: ${originalFileCount} files (${formatBytes(originalTotalSize)})`);
+    } else {
+      console.log(`✅ Processed ${finalFileCount} files (${formatBytes(finalTotalSize)}) in ${processTime}s`);
+    }
     
     if (result.skipped > 0) {
       console.log(`Skipped ${result.skipped} binary/large files`);
     }
 
     if (options.stats) {
-      showDetailedStats(files, totalSize);
+      showDetailedStats(files, finalTotalSize);
     }
 
     // Copy to clipboard
-    copyToClipboard(formatted);
-    console.log("📋 Copied to clipboard - Paste to any AI & watch magic ✨");
+    const clipboardSuccess = copyToClipboard(formatted);
+    if (clipboardSuccess) {
+      console.log("📋 Copied to clipboard - Paste to any AI & watch magic ✨");
+    }
     
     // Smart suggestions based on project
-    showSmartSuggestions(totalSize, fileCount, files);
+    showSmartSuggestions(finalTotalSize, finalFileCount, files, originalTotalSize !== finalTotalSize);
 
     if (options.verbose) {
-      console.log(`\nStats: ${fileCount} files, ${formatBytes(totalSize)}, ~${Math.round(totalSize / 4)} tokens`);
+      console.log(`\nStats: ${finalFileCount} files, ${formatBytes(finalTotalSize)}, ~${Math.round(finalTotalSize / 4)} tokens`);
     }
 
   } catch (error) {
@@ -70,6 +87,70 @@ export async function runContext(options = {}) {
     }
     process.exit(1);
   }
+}
+
+function handleLargeProject(files, options) {
+  // Priority order for files
+  const filePriority = {
+    'package.json': 100,
+    'README.md': 90,
+    'index.js': 80,
+    'main.js': 80,
+    'app.js': 80,
+    'server.js': 75
+  };
+  
+  // Get file priority score
+  function getFilePriority(filename) {
+    // Exact match
+    if (filePriority[filename]) return filePriority[filename];
+    
+    // Extension-based priority
+    const ext = path.extname(filename).toLowerCase();
+    const extensionPriority = {
+      '.js': 70, '.ts': 70, '.jsx': 65, '.tsx': 65,
+      '.vue': 60, '.py': 60, '.go': 55, '.rs': 55,
+      '.md': 50, '.json': 30, '.yaml': 25, '.yml': 25
+    };
+    
+    return extensionPriority[ext] || 20;
+  }
+  
+  // Truncate very large files
+  function truncateIfNeeded(content, filename, maxLength = 5000) {
+    if (content.length <= maxLength) return content;
+    
+    const truncated = content.substring(0, maxLength);
+    const lastNewline = truncated.lastIndexOf('\n');
+    const safeContent = lastNewline > 0 ? truncated.substring(0, lastNewline) : truncated;
+    
+    return `${safeContent}\n\n// ... (file truncated - showing first ${safeContent.length} of ${content.length} characters)\n// Use 'cortxt file ${filename}' for complete content`;
+  }
+  
+  // Sort files by priority
+  const prioritizedFiles = files
+    .map(([file, content]) => ({
+      file,
+      content: truncateIfNeeded(content, file),
+      priority: getFilePriority(path.basename(file)),
+      size: content.length
+    }))
+    .sort((a, b) => b.priority - a.priority);
+  
+  // Select files that fit within reasonable size limit
+  let currentSize = 0;
+  const maxSize = options.maxSize ? parseInt(options.maxSize) * 1024 : 400000; // 400KB default
+  const selectedFiles = [];
+  
+  for (const fileObj of prioritizedFiles) {
+    if (currentSize + fileObj.content.length > maxSize && selectedFiles.length > 5) {
+      break; // Stop adding files but ensure we have at least 5 files
+    }
+    selectedFiles.push([fileObj.file, fileObj.content]);
+    currentSize += fileObj.content.length;
+  }
+  
+  return selectedFiles;
 }
 
 function detectProjectType() {
@@ -116,9 +197,14 @@ function detectProjectType() {
   return null;
 }
 
-function showSmartSuggestions(totalSize, fileCount, files) {
-  // Large project suggestion
-  if (totalSize > 200000) {
+function showSmartSuggestions(totalSize, fileCount, files, wasOptimized) {
+  if (wasOptimized) {
+    console.log(`🎯 Smart optimization applied - showing priority files`);
+    console.log(`💡 Use ${colors.brand.bold('cortxt context --force')} to include all files`);
+    console.log(`💡 Or ${colors.brand.bold('cortxt file <specific-file>')} for individual files`);
+  } else if (totalSize > 800000) {
+    console.log(`📊 Large project - perfect for AI analysis with smart filtering`);
+  } else if (totalSize > 200000) {
     const mainFiles = files.filter(([file]) => 
       file.includes('index.') || file.includes('main.') || file.includes('app.')
     );
@@ -127,14 +213,12 @@ function showSmartSuggestions(totalSize, fileCount, files) {
     } else {
       console.log(`💡 Project is large! Try: ${colors.brand.bold('cortxt file <specific-file>')} for focused help`);
     }
-  } 
-  // Small project
-  else if (fileCount < 3) {
+  } else if (fileCount < 3) {
     console.log("💡 Small project detected. Perfect for AI analysis!");
-  }
-  // Medium project with package.json
-  else if (fs.existsSync(path.join(process.cwd(), "package.json"))) {
+  } else if (fs.existsSync(path.join(process.cwd(), "package.json"))) {
     console.log(`💡 Need help? Try ${colors.brand.bold('cortxt --help')} 🤝`);
+  } else {
+    console.log(`✨ Ready to share with AI! Try ${colors.brand.bold('cortxt --help')} for more options 🤝`);
   }
 }
 

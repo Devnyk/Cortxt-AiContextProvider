@@ -23,6 +23,8 @@ program
   .description("📁 Extract full project (all files & code)")
   .option("-v, --verbose", "show detailed scanning info")
   .option("-s, --stats", "show project statistics")
+  .option("--force", "include all files regardless of size")
+  .option("--max-size <size>", "maximum total size in KB (default: 400)", "400")
   .action((options) => {
     showBrand();
     runContext(options);
@@ -79,16 +81,24 @@ ${colors.info('COMMANDS:')}
   ${colors.filename('tree')}                    Show project folder structure
   ${colors.filename('stats')}                   Show project statistics (files, lines, size)
 
-${colors.info('OPTIONS:')}
+${colors.info('CONTEXT OPTIONS:')}
+  -v, --verbose           Show detailed scanning info
+  -s, --stats             Show project statistics
+  --force                 Include all files regardless of size
+  --max-size <size>       Maximum total size in KB (default: 400)
+
+${colors.info('OTHER OPTIONS:')}
   --version               Show version number
   --help, -h              Show help for a command
 
 ${colors.info('EXAMPLES:')}
-  ${colors.brand('cortxt context')}          # Copy entire project code to clipboard
-  ${colors.brand('cortxt file src/app.js')}  # Copy only one file's code
-  ${colors.brand('cortxt deps')}             # Copy dependencies
-  ${colors.brand('cortxt tree')}             # Show folder structure
-  ${colors.brand('cortxt stats')}            # Show project stats
+  ${colors.brand('cortxt context')}              # Copy entire project code to clipboard
+  ${colors.brand('cortxt context --force')}      # Include all files, bypass smart filtering
+  ${colors.brand('cortxt context --max-size 800')}  # Set custom size limit
+  ${colors.brand('cortxt file src/app.js')}      # Copy only one file's code
+  ${colors.brand('cortxt deps')}                 # Copy dependencies
+  ${colors.brand('cortxt tree')}                 # Show folder structure
+  ${colors.brand('cortxt stats')}                # Show project stats
 
 ${colors.success('✨ All output is automatically copied to clipboard!')}`;
   }
@@ -98,7 +108,8 @@ ${colors.success('✨ All output is automatically copied to clipboard!')}`;
 program.action(() => {
   console.log(`${colors.info('--->>>>> 👉 Cortxt Quick Commands 👇 <<<<<---')}
 
-  ${colors.brand.bold('cortxt context')}          # Extract all code
+  ${colors.brand.bold('cortxt context')}          # Extract all code (smart filtering)
+  ${colors.brand.bold('cortxt context --force')}  # Extract all code (no filtering)
   ${colors.brand.bold('cortxt file <path>')}      # Extract one file
   ${colors.brand.bold('cortxt deps')}             # Extract dependencies
   ${colors.brand.bold('cortxt tree')}             # Show folder structure
