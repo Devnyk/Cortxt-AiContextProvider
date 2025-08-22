@@ -1,6 +1,6 @@
 # Cortxt 🧠
 
-![Cortxt Banner](https://raw.githubusercontent.com/Devnyk/cortxt-AiContextProvider/main/assets/cortxt2.png)
+![Cortxt Banner](https://ik.imagekit.io/1ukuaaqqhl/cortxt2.png?updatedAt=1755861293199)
 
 **The fastest way to provide project context to AI intelligence.**
 
