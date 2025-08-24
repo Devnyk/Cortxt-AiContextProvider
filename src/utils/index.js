@@ -132,9 +132,7 @@ program.action(() => {
   console.log(`${colors.info('--->>>>> 👉 Cortxt Quick Commands 👇 <<<<<---')}
 
   ${colors.brand.bold('cortxt context')}          # Extract all code (smart filtering)
-  ${colors.brand.bold('cortxt file')}             # Interactive file selection
   ${colors.brand.bold('cortxt file --multiple')}  # Select multiple files
-  ${colors.brand.bold('cortxt ignore --list')}    # Show ignored patterns
   ${colors.brand.bold('cortxt deps')}             # Extract dependencies
   ${colors.brand.bold('cortxt tree')}             # Show folder structure
   ${colors.brand.bold('cortxt stats')}            # Show project stats
