@@ -1,4 +1,3 @@
-// src/commands/context.js
 import fs from "fs";
 import path from "path";
 import ora from "ora";
@@ -100,10 +99,14 @@ export async function runContext(options = {}) {
       showDetailedStats(files, finalTotalSize);
     }
 
-    // Copy to clipboard
+    // Copy to clipboard - friendly message
     const clipboardSuccess = copyToClipboard(formatted);
     if (clipboardSuccess) {
-      console.log("📋 Copied to clipboard - Paste to any AI & watch magic ✨");
+      console.log(
+        `📋 ${colors.success("Project content copied to clipboard!")} ${colors.brand(
+          "Paste to any AI & watch magic ✨"
+        )}`
+      );
     }
 
     // Smart suggestions based on project
@@ -112,6 +115,13 @@ export async function runContext(options = {}) {
       finalFileCount,
       files,
       originalTotalSize !== finalTotalSize
+    );
+
+    // New feature notification
+    console.log(
+      `\n🆕 ${colors.info(
+        "New Feature:" 
+      )} ${colors.brand("You can now select multiple files using `npx cortxt file --multiple`")}`
     );
 
     if (options.verbose) {
@@ -252,7 +262,7 @@ function showSmartSuggestions(
   files,
   wasFiltered
 ) {
-  console.log(`\n${colors.info("💡 Smart Suggestions:")}`);
+  console.log(`\n${colors.info("💡 Smart Suggestions: --help")}`);
 
   if (finalTotalSize > 200000) {
     console.log(

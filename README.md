@@ -12,8 +12,8 @@ AI-friendly CLI that instantly transforms your codebase into perfectly formatted
 # Get your entire project ready for AI in seconds
 npx cortxt context
 
-# Focus on a specific file  
-npx cortxt file src/index.js
+# Select multiple files interactively (NEW) 
+npx cortxt file --multiple
 
 # Extract the folder structure
 npx cortxt tree
@@ -44,11 +44,12 @@ npx cortxt context --verbose          # Show detailed scanning info
 npx cortxt context --stats            # Display project statistics
 ```
 
-### `npx cortxt file <filepath>`
+### `npx cortxt file`
 **📄 Extract single file** - Perfect for focused AI assistance
 
 ```bash
-npx cortxt file src/app.js      # Single file extraction
+npx cortxt file --multiple      # Select multiple files interactively (NEW)
+npx cortxt file src/app.js      # Copy specific file
 npx cortxt file README.md --lines  # Include line numbers
 ```
 
