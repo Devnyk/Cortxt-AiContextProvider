@@ -1,6 +1,7 @@
 // src/commands/context.js
 import fs from "fs";
 import path from "path";
+import ora from "ora";
 import { readProject } from "../utils/read.js";
 import { copyToClipboard } from "../utils/clipboard.js";
 import { formatBytes, getProjectName } from "../utils/helpers.js";
@@ -8,8 +9,13 @@ import { colors, ui } from "../utils/colors.js";
 import chalk from "chalk";
 
 export async function runContext(options = {}) {
+  const spinner = ora({
+    text: 'Scanning project...',
+    color: 'cyan'
+  });
+
   try {
-    console.log("🔍 Scanning project...");
+    spinner.start();
 
     const projectName = getProjectName();
     const projectType = detectProjectType();
@@ -18,7 +24,7 @@ export async function runContext(options = {}) {
       const displayName = projectType
         ? `${projectName} (${projectType})`
         : projectName;
-      console.log(`Project: ${displayName}`);
+      spinner.text = `Scanning ${displayName}...`;
     }
 
     const startTime = Date.now();
@@ -30,6 +36,8 @@ export async function runContext(options = {}) {
       (sum, [, content]) => sum + content.length,
       0
     );
+
+    spinner.stop();
 
     if (originalFileCount === 0) {
       console.log("❌ No files found to process");
@@ -45,7 +53,10 @@ export async function runContext(options = {}) {
       files = handleLargeProject(files, options);
     }
 
-    console.log("Processing files...");
+    const processingSpinner = ora({
+      text: 'Processing files...',
+      color: 'green'
+    }).start();
 
     const finalFileCount = files.length;
     const finalTotalSize = files.reduce(
@@ -56,6 +67,8 @@ export async function runContext(options = {}) {
     const formatted = files
       .map(([file, code]) => `\n\n### ${file}\n\`\`\`\n${code}\n\`\`\``)
       .join("\n");
+
+    processingSpinner.stop();
 
     // Show stats
     const processTime = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -109,6 +122,8 @@ export async function runContext(options = {}) {
       );
     }
   } catch (error) {
+    if (spinner.isSpinning) spinner.fail('Failed to scan project');
+    
     console.error(`❌ Error: ${error.message}`);
     if (error.code === "ENOENT") {
       console.log(
@@ -173,159 +188,146 @@ function handleLargeProject(files, options) {
   const prioritizedFiles = files
     .map(([file, content]) => ({
       file,
-      content: truncateIfNeeded(content, file),
+      content,
       priority: getFilePriority(path.basename(file)),
-      size: content.length,
     }))
     .sort((a, b) => b.priority - a.priority);
 
-  // Select files that fit within reasonable size limit
+  // Get size limit
+  const maxSizeBytes = parseInt(options.maxSize) * 1024;
   let currentSize = 0;
-  const maxSize = options.maxSize ? parseInt(options.maxSize) * 1024 : 400000; // 400KB default
   const selectedFiles = [];
 
-  for (const fileObj of prioritizedFiles) {
-    if (
-      currentSize + fileObj.content.length > maxSize &&
-      selectedFiles.length > 5
-    ) {
-      break; // Stop adding files but ensure we have at least 5 files
+  for (const { file, content } of prioritizedFiles) {
+    const truncatedContent = truncateIfNeeded(content, file);
+    const contentSize = truncatedContent.length;
+
+    if (currentSize + contentSize <= maxSizeBytes) {
+      selectedFiles.push([file, truncatedContent]);
+      currentSize += contentSize;
+    } else if (selectedFiles.length === 0) {
+      // Always include at least one file
+      selectedFiles.push([file, truncatedContent]);
+      break;
+    } else {
+      break;
     }
-    selectedFiles.push([fileObj.file, fileObj.content]);
-    currentSize += fileObj.content.length;
   }
 
   return selectedFiles;
 }
 
-function detectProjectType() {
-  const cwd = process.cwd();
-  const hasFile = (name) => fs.existsSync(path.join(cwd, name));
-
-  if (hasFile("package.json")) {
-    try {
-      const pkg = JSON.parse(
-        fs.readFileSync(path.join(cwd, "package.json"), "utf-8")
-      );
-
-      // React/Next.js
-      if (pkg.dependencies?.react || pkg.dependencies?.next) {
-        return hasFile("next.config.js") ? "⚛️ Next.js" : "⚛️ React";
-      }
-
-      // Vue.js
-      if (pkg.dependencies?.vue || hasFile("vue.config.js")) {
-        return "🟢 Vue.js";
-      }
-
-      // Node.js API
-      if (pkg.dependencies?.express || pkg.dependencies?.fastify) {
-        return "🚀 Node.js API";
-      }
-
-      return "📦 Node.js";
-    } catch {
-      return "📦 Node.js";
-    }
-  }
-
-  if (hasFile("requirements.txt") || hasFile("setup.py")) {
-    return "🐍 Python";
-  }
-
-  if (hasFile("Cargo.toml")) {
-    return "🦀 Rust";
-  }
-
-  if (hasFile("go.mod")) {
-    return "🐹 Go";
-  }
-
-  return null;
-}
-
-function showSmartSuggestions(totalSize, fileCount, files, wasOptimized) {
-  if (wasOptimized) {
-    console.log(`🎯 Smart optimization applied - showing priority files`);
-    console.log(
-      `💡 Use ${colors.brand.bold(
-        "cortxt context --force"
-      )} to include all files`
-    );
-    console.log(
-      `💡 Or ${colors.brand.bold(
-        "cortxt file <specific-file>"
-      )} for individual files`
-    );
-  } else if (totalSize > 800000) {
-    console.log(
-      `📊 Large project - perfect for AI analysis with smart filtering`
-    );
-  } else if (totalSize > 200000) {
-    const mainFiles = files.filter(
-      ([file]) =>
-        file.includes("index.") ||
-        file.includes("main.") ||
-        file.includes("app.")
-    );
-    if (mainFiles.length > 0) {
-      console.log(
-        `💡 Project is large! Try: ${colors.brand.bold(
-          "cortxt file " + mainFiles[0][0]
-        )} for focused help`
-      );
-    } else {
-      console.log(
-        `💡 Project is large! Try: ${colors.brand.bold(
-          "cortxt file <specific-file>"
-        )} for focused help`
-      );
-    }
-  } else if (fileCount < 3) {
-    console.log("💡 Small project detected. Perfect for AI analysis!");
-  } else if (fs.existsSync(path.join(process.cwd(), "package.json"))) {
-    console.log(`💡 Need help? Try ${colors.brand.bold("cortxt --help")} 🤝`);
-  } else {
-    console.log(
-      `✨ Ready to share with AI! Try ${colors.brand.bold(
-        "cortxt --help"
-      )} for more options 🤝`
-    );
-  }
-}
-
 function showDetailedStats(files, totalSize) {
-  console.log(`\nDetailed Statistics:`);
-  console.log(`━━━━━━━━━━━━━━━━━━━━`);
-
-  // File type breakdown
+  console.log(`\n${colors.brand.bold("📊 Detailed Statistics:")}`);
+  
+  // File extensions breakdown
   const extensions = {};
   files.forEach(([file]) => {
-    const ext = file.split(".").pop() || "no extension";
+    const ext = path.extname(file) || "no extension";
     extensions[ext] = (extensions[ext] || 0) + 1;
   });
 
-  console.log(`File Types:`);
+  console.log(`${colors.info("File types:")}`);
   Object.entries(extensions)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .forEach(([ext, count]) => {
-      const percentage = ((count / files.length) * 100).toFixed(1);
-      console.log(
-        `  .${ext.padEnd(6)} ${count
-          .toString()
-          .padStart(2)} files (${percentage}%)`
-      );
+      console.log(`  ${colors.filename(ext.padEnd(12))} ${colors.number(count)} files`);
     });
 
   // Largest files
-  const sortedBySize = files
+  console.log(`\n${colors.info("Largest files:")}`);
+  files
     .map(([file, content]) => [file, content.length])
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 5);
+    .slice(0, 3)
+    .forEach(([file, size]) => {
+      console.log(`  ${colors.filename(file.padEnd(25))} ${colors.size(formatBytes(size))}`);
+    });
+}
 
-  console.log(`\nLargest Files:`);
-  sortedBySize.forEach(([file, size]) => {
-    console.log(`  ${file.padEnd(25)} ${formatBytes(size)}`);
-  });
+function showSmartSuggestions(
+  finalTotalSize,
+  finalFileCount,
+  files,
+  wasFiltered
+) {
+  console.log(`\n${colors.info("💡 Smart Suggestions:")}`);
+
+  if (finalTotalSize > 200000) {
+    console.log(
+      `${colors.warning("⚠️  Large context size detected")} - Consider using ${colors.brand("cortxt file")} for specific files`
+    );
+  }
+
+  if (wasFiltered) {
+    console.log(
+      `${colors.info("🎯 Smart filtering applied")} - Use ${colors.brand("--force")} to include all files`
+    );
+  }
+
+  // Detect common files that might be useful
+  const hasTests = files.some(([file]) =>
+    file.includes("test") || file.includes("spec")
+  );
+  const hasConfig = files.some(([file]) =>
+    file.includes("config") || file.includes(".config")
+  );
+
+  if (!hasTests && hasConfig) {
+    console.log(
+      `${colors.info("🧪 No test files found")} - Consider adding test files to your project context`
+    );
+  }
+
+  if (finalFileCount < 5) {
+    console.log(
+      `${colors.info("📁 Small project detected")} - Perfect size for AI analysis!`
+    );
+  }
+}
+
+function detectProjectType() {
+  try {
+    const cwd = process.cwd();
+    
+    if (fs.existsSync(path.join(cwd, "package.json"))) {
+      const pkg = JSON.parse(fs.readFileSync(path.join(cwd, "package.json"), "utf-8"));
+      
+      if (pkg.dependencies || pkg.devDependencies) {
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        if (deps.next) return "Next.js";
+        if (deps.react) return "React";
+        if (deps.vue) return "Vue.js";
+        if (deps.express) return "Express";
+        if (deps.nuxt) return "Nuxt.js";
+        if (deps.gatsby) return "Gatsby";
+        if (deps.angular || deps["@angular/core"]) return "Angular";
+      }
+      
+      return "Node.js";
+    }
+    
+    if (fs.existsSync(path.join(cwd, "requirements.txt")) || 
+        fs.existsSync(path.join(cwd, "pyproject.toml"))) {
+      return "Python";
+    }
+    
+    if (fs.existsSync(path.join(cwd, "Cargo.toml"))) {
+      return "Rust";
+    }
+    
+    if (fs.existsSync(path.join(cwd, "go.mod"))) {
+      return "Go";
+    }
+    
+    if (fs.existsSync(path.join(cwd, "composer.json"))) {
+      return "PHP";
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
 }
