@@ -27,7 +27,7 @@ export async function runTree(options = {}) {
   );
 }
 
-function buildTree(dir, prefix = "", maxDepth = 3, currentDepth = 0) {
+function buildTree(dir, prefix = "", maxDepth = 6, currentDepth = 0) {
   if (currentDepth >= maxDepth) return "";
 
   try {
