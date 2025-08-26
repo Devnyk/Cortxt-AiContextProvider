@@ -1,6 +1,6 @@
 {
   "name": "cortxt",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "AI-friendly CLI to share project context or file code easily. The fastest way to provide project context to AI intelligence like ChatGPT, Claude, and other AI assistants.",
   "main": "src/utils/index.js",
   "bin": {
